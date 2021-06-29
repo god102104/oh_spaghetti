@@ -1,215 +1,183 @@
-# TensorFlow Object Detection API
-[![TensorFlow 2.2](https://img.shields.io/badge/TensorFlow-2.2-FF6F00?logo=tensorflow)](https://github.com/tensorflow/tensorflow/releases/tag/v2.2.0)
-[![TensorFlow 1.15](https://img.shields.io/badge/TensorFlow-1.15-FF6F00?logo=tensorflow)](https://github.com/tensorflow/tensorflow/releases/tag/v1.15.0)
-[![Python 3.6](https://img.shields.io/badge/Python-3.6-3776AB)](https://www.python.org/downloads/release/python-360/)
+# oh_spaghetti
 
-Creating accurate machine learning models capable of localizing and identifying
-multiple objects in a single image remains a core challenge in computer vision.
-The TensorFlow Object Detection API is an open source framework built on top of
-TensorFlow that makes it easy to construct, train and deploy object detection
-models. At Google we’ve certainly found this codebase to be useful for our
-computer vision needs, and we hope that you will as well. <p align="center">
-<img src="g3doc/img/kites_detections_output.jpg" width=676 height=450> </p>
-Contributions to the codebase are welcome and we would love to hear back from
-you if you find this API useful. Finally if you use the TensorFlow Object
-Detection API for a research publication, please consider citing:
+KT 인턴십 1조 돌봐주개의 깃허브입니다
+
+## Install
+### 1. Update the Raspberry Pi
+First, the Raspberry Pi needs to be fully updated. Open a terminal and issue:
+```
+sudo apt-get update
+sudo apt-get dist-upgrade
+```
+Depending on how long it’s been since you’ve updated your Pi, the upgrade could take anywhere between a minute and an hour.
+
+### 2. Install TensorFlow
+*Update 10/13/19: Changed instructions to just use "pip3 install tensorflow" rather than getting it from lhelontra's repository. The old instructions have been moved to this guide's appendix.*
+
+Next, we’ll install TensorFlow. The download is rather large (over 100MB), so it may take a while. Issue the following command:
 
 ```
-"Speed/accuracy trade-offs for modern convolutional object detectors."
-Huang J, Rathod V, Sun C, Zhu M, Korattikara A, Fathi A, Fischer I, Wojna Z,
-Song Y, Guadarrama S, Murphy K, CVPR 2017
+pip3 install tensorflow
 ```
 
-\[[link](https://arxiv.org/abs/1611.10012)\]\[[bibtex](https://scholar.googleusercontent.com/scholar.bib?q=info:l291WsrB-hQJ:scholar.google.com/&output=citation&scisig=AAGBfm0AAAAAWUIIlnPZ_L9jxvPwcC49kDlELtaeIyU-&scisf=4&ct=citation&cd=-1&hl=en&scfhb=1)\]
+TensorFlow also needs the LibAtlas package. Install it by issuing the following command. (If this command doesn't work, issue "sudo apt-get update" and then try again).
+```
+sudo apt-get install libatlas-base-dev
+```
+While we’re at it, let’s install other dependencies that will be used by the TensorFlow Object Detection API. These are listed on the [installation instructions](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md) in TensorFlow’s Object Detection GitHub repository. Issue:
+```
+sudo pip3 install pillow lxml jupyter matplotlib cython
+sudo apt-get install python-tk
+```
+Alright, that’s everything we need for TensorFlow! Next up: OpenCV.
 
-<p align="center">
-  <img src="g3doc/img/tf-od-api-logo.png" width=140 height=195>
-</p>
+### 3. Install OpenCV
+TensorFlow’s object detection examples typically use matplotlib to display images, but I prefer to use OpenCV because it’s easier to work with and less error prone. The object detection scripts in this guide’s GitHub repository use OpenCV. So, we need to install OpenCV.
 
-## Support for TensorFlow 2 and 1
-The TensorFlow Object Detection API supports both TensorFlow 2 (TF2) and
-TensorFlow 1 (TF1). A majority of the modules in the library are both TF1 and
-TF2 compatible. In cases where they are not, we provide two versions.
+To get OpenCV working on the Raspberry Pi, there’s quite a few dependencies that need to be installed through apt-get. If any of the following commands don’t work, issue “sudo apt-get update” and then try again. Issue:
+```
+sudo apt-get install libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev
+sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+sudo apt-get install libxvidcore-dev libx264-dev
+sudo apt-get install qt4-dev-tools libatlas-base-dev
+```
+Now that we’ve got all those installed, we can install OpenCV. Issue:
+```
+sudo pip3 install opencv-python
+```
+Alright, now OpenCV is installed!
 
-Although we will continue to maintain the TF1 models and provide support, we
-encourage users to try the Object Detection API with TF2 for the following
-reasons:
+### 4. Compile and Install Protobuf
+The TensorFlow object detection API uses Protobuf, a package that implements Google’s Protocol Buffer data format. You used to need to compile this from source, but now it's an easy install! I moved the old instructions for compiling and installing it from source to the appendix of this guide.
 
-* We provide new architectures supported in TF2 only and we will continue to
-  develop in TF2 going forward.
+```sudo apt-get install protobuf-compiler```
 
-* The popular models we ported from TF1 to TF2 achieve the same performance.
+Run `protoc --version` once that's done to verify it is installed. You should get a response of `libprotoc 3.6.1` or similar.
 
-* A single training and evaluation binary now supports both GPU and TPU
-  distribution strategies making it possible to train models with synchronous
-  SGD by default.
+### 5. Set up TensorFlow Directory Structure and PYTHONPATH Variable
+we need to modify the PYTHONPATH environment variable to point at some directories inside the TensorFlow repository we just downloaded. We want PYTHONPATH to be set every time we open a terminal, so we have to modify the .bashrc file. Open it by issuing:
+```
+sudo nano ~/.bashrc
+```
+Move to the end of the file, and on the last line, add:
+```
+export PYTHONPATH=$PYTHONPATH:/home/pi/oh_spaghetti/research:/home/pi/oh_spaghetti/research/slim
+```
 
-* Eager execution with new binaries makes debugging easy!
+Then, save and exit the file. This makes it so the “export PYTHONPATH” command is called every time you open a new terminal, so the PYTHONPATH variable will always be set appropriately. Close and then re-open the terminal.
 
-Finally, if are an existing user of the Object Detection API we have retained
-the same config language you are familiar with and ensured that the
-TF2 training/eval binary takes the same arguments as our TF1 binaries.
+Now, we need to use Protoc to compile the Protocol Buffer (.proto) files used by the Object Detection API. The .proto files are located in /research/object_detection/protos, but we need to execute the command from the /research directory. Issue:
+```
+cd /home/pi/oh_spaghetti/research
+protoc object_detection/protos/*.proto --python_out=.
+```
+This command converts all the "name".proto files to "name_pb2".py files. Next, move into the object_detection directory:
 
-Note: The models we provide in [TF2 Zoo](g3doc/tf2_detection_zoo.md) and
-[TF1 Zoo](g3doc/tf1_detection_zoo.md) are specific to the TensorFlow major
-version and are not interoperable.
+### 6. start
 
-Please select one of the links below for TensorFlow version-specific
-documentation of the Object Detection API:
+Run the script by issuing: 
+```
+python3 OD_with_socket.py 
+```
 
-<!-- mdlint off(WHITESPACE_LINE_LENGTH) -->
-### Tensorflow 2.x
-  *   <a href='g3doc/tf2.md'>
-        Object Detection API TensorFlow 2</a><br>
-  *   <a href='g3doc/tf2_detection_zoo.md'>
-        TensorFlow 2 Model Zoo</a><br>
+## Appendix
 
-### Tensorflow 1.x
-  *   <a href='g3doc/tf1.md'>
-        Object Detection API TensorFlow 1</a><br>
-  *   <a href='g3doc/tf1_detection_zoo.md'>
-        TensorFlow 1 Model Zoo</a><br>
-<!-- mdlint on -->
+### Old instructions for installing TensorFlow
+These instructions show how to install TensorFlow using lhelontra's repository. They were replaced in my 10/13/19 update of this guide. I am keeping them here, because these are the instructions used in my [video](https://www.youtube.com/watch?v=npZ-8Nj1YwY).
 
-## Whats New
+In the /home/pi directory, create a folder called ‘tf’, which will be used to hold all the installation files for TensorFlow and Protobuf, and cd into it:
+```
+mkdir tf
+cd tf
+```
+A pre-built, Rapsberry Pi-compatible wheel file for installing the latest version of TensorFlow is available in the [“TensorFlow for ARM” GitHub repository](https://github.com/lhelontra/tensorflow-on-arm/releases). GitHub user lhelontra updates the repository with pre-compiled installation packages each time a new TensorFlow is released. Thanks lhelontra!  Download the wheel file by issuing:
+```
+wget https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.8.0/tensorflow-1.8.0-cp35-none-linux_armv7l.whl
+```
+At the time this tutorial was written, the most recent version of TensorFlow was version 1.8.0. If a more recent version is available on the repository, you can download it rather than version 1.8.0.
 
-### DeepMAC architecture
+Alternatively, if the owner of the GitHub repository stops releasing new builds, or if you want some experience compiling Python packages from source code, you can check out my video guide: [How to Install TensorFlow from Source on the Raspberry Pi](https://youtu.be/WqCnW_2XDw8), which shows you how to build and install TensorFlow from source on the Raspberry Pi.
 
-We have released our new architecture, **DeepMAC**, designed for partially
-supervised instance segmentation. DeepMAC stands for Deep Mask-heads
-Above CenterNet, and is based on our CenterNet implementation. In our
-[paper](https://arxiv.org/abs/2104.00613) we show that DeepMAC achieves
-state-of-the-art results for the partially supervised instance segmentation
-task without using any specialty modules or losses; just better mask-head
-architectures. The findings from our paper are not specific to CenterNet and
-can also be applied to Mask R-CNN or without any detector at all.
-Please see links below for more details
+[![Link to TensorFlow installation video!](https://raw.githubusercontent.com/EdjeElectronics/TensorFlow-Object-Detection-on-the-Raspberry-Pi/master/doc/Install_TF_RPi.jpg)](https://www.youtube.com/watch?v=WqCnW_2XDw8)
 
-*   [DeepMAC documentation](g3doc/deepmac.md).
-*   [Mask RCNN code](https://github.com/tensorflow/models/tree/master/official/vision/beta/projects/deepmac_maskrcnn)
-    in TF Model garden code base.
-*   [DeepMAC Colab](./colab_tutorials/deepmac_colab.ipynb) that lets you run a
-    pre-trained DeepMAC model on user-specified boxes. Note that you are not
-    restricted to COCO classes!
-*   Project website - [git.io/deepmac](https://git.io/deepmac)
+Now that we’ve got the file, install TensorFlow by issuing:
+```
+sudo pip3 install /home/pi/tf/tensorflow-1.8.0-cp35-none-linux_armv7l.whl
+```
+TensorFlow also needs the LibAtlas package. Install it by issuing (if this command doesn't work, issue "sudo apt-get update" and then try again):
+```
+sudo apt-get install libatlas-base-dev
+```
+While we’re at it, let’s install other dependencies that will be used by the TensorFlow Object Detection API. These are listed on the [installation instructions](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md) in TensorFlow’s Object Detection GitHub repository. Issue:
+```
+sudo pip3 install pillow lxml jupyter matplotlib cython
+sudo apt-get install python-tk
+```
+TensorFlow is now installed and ready to go!
 
-<b>Thanks to contributors</b>: Vighnesh Birodkar, Zhichao Lu, Siyang Li,
- Vivek Rathod, Jonathan Huang
+### Old instructions for compiling and installing Protobuf from source
+These are the old instructions from Step 4 showing how to compile and install Protobuf from source. These were replaced in the 10/13/19 update of this guide.
 
+The TensorFlow object detection API uses Protobuf, a package that implements Google’s Protocol Buffer data format. Unfortunately, there’s currently no easy way to install Protobuf on the Raspberry Pi. We have to compile it from source ourselves and then install it. Fortunately, a [guide](http://osdevlab.blogspot.com/2016/03/how-to-install-google-protocol-buffers.html) has already been written on how to compile and install Protobuf on the Pi. Thanks OSDevLab for writing the guide!
 
-### Mobile Inference for TF2 models
+First, get the packages needed to compile Protobuf from source. Issue:
+```
+sudo apt-get install autoconf automake libtool curl
+```
+Then download the protobuf release from its GitHub repository by issuing:
+```
+wget https://github.com/google/protobuf/releases/download/v3.5.1/protobuf-all-3.5.1.tar.gz
+```
+If a more recent version of protobuf is available, download that instead. Unpack the file and cd into the folder:
+```
+tar -zxvf protobuf-all-3.5.1.tar.gz
+cd protobuf-3.5.1
+```
+Configure the build by issuing the following command (it takes about 2 minutes):
+```
+./configure
+```
+Build the package by issuing:
+```
+make
+```
+The build process took 61 minutes on my Raspberry Pi. When it’s finished, issue:
+```
+make check 
+```
+This process takes even longer, clocking in at 107 minutes on my Pi. According to other guides I’ve seen, this command may exit out with errors, but Protobuf will still work. If you see errors, you can ignore them for now. Now that it’s built, install it by issuing:
+```
+sudo make install
+```
+Then move into the python directory and export the library path:
+```
+cd python
+export LD_LIBRARY_PATH=../src/.libs
+```
+Next, issue:
+```
+python3 setup.py build --cpp_implementation 
+python3 setup.py test --cpp_implementation
+sudo python3 setup.py install --cpp_implementation
+```
+Then issue the following path commands:
+```
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION_VERSION=3
+```
+Finally, issue:
+```
+sudo ldconfig
+```
+That’s it! Now Protobuf is installed on the Pi. Verify it’s installed correctly by issuing the command below and making sure it puts out the default help text.
+```
+protoc
+```
+For some reason, the Raspberry Pi needs to be restarted after this process, or TensorFlow will not work. Go ahead and reboot the Pi by issuing:
+```
+sudo reboot now
+```
 
-TF2 OD API models can now be converted to TensorFlow Lite! Only SSD models
-currently supported. See <a href='g3doc/running_on_mobile_tf2.md'>documentation</a>.
+Protobuf should now be installed!
 
-**Thanks to contributors**: Sachin Joglekar
-
-### TensorFlow 2 Support
-
-We are happy to announce that the TF OD API officially supports TF2! Our release
-includes:
-
-* New binaries for train/eval/export that are designed to run in eager mode.
-* A suite of TF2 compatible (Keras-based) models; this includes migrations of
-  our most popular TF1.x models (e.g., SSD with MobileNet, RetinaNet,
-  Faster R-CNN, Mask R-CNN), as well as a few new architectures for which we
-  will only maintain TF2 implementations:
-
-    1. CenterNet - a simple and effective anchor-free architecture based on
-       the recent [Objects as Points](https://arxiv.org/abs/1904.07850) paper by
-       Zhou et al.
-    2. [EfficientDet](https://arxiv.org/abs/1911.09070) - a recent family of
-       SOTA models discovered with the help of Neural Architecture Search.
-
-* COCO pre-trained weights for all of the models provided as TF2 style
-  object-based checkpoints.
-* Access to [Distribution Strategies](https://www.tensorflow.org/guide/distributed_training)
-  for distributed training --- our model are designed to be trainable using sync
-  multi-GPU and TPU platforms.
-* Colabs demo’ing eager mode training and inference.
-
-See our release blogpost [here](https://blog.tensorflow.org/2020/07/tensorflow-2-meets-object-detection-api.html).
-If you are an existing user of the TF OD API using TF 1.x, don’t worry, we’ve
-got you covered.
-
-**Thanks to contributors**: Akhil Chinnakotla, Allen Lavoie, Anirudh Vegesana,
-Anjali Sridhar, Austin Myers, Dan Kondratyuk, David Ross, Derek Chow, Jaeyoun
-Kim, Jing Li, Jonathan Huang, Jordi Pont-Tuset, Karmel Allison, Kathy Ruan,
-Kaushik Shivakumar, Lu He, Mingxing Tan, Pengchong Jin, Ronny Votel, Sara Beery,
-Sergi Caelles Prat, Shan Yang, Sudheendra Vijayanarasimhan, Tina Tian, Tomer
-Kaftan, Vighnesh Birodkar, Vishnu Banna, Vivek Rathod, Yanhui Liang, Yiming Shi,
-Yixin Shi, Yu-hui Chen, Zhichao Lu.
-
-### MobileDet GPU
-
-We have released SSDLite with MobileDet GPU backbone, which achieves 17% mAP
-higher than the MobileNetV2 SSDLite (27.5 mAP vs 23.5 mAP) on a NVIDIA Jetson
-Xavier at comparable latency (3.2ms vs 3.3ms).
-
-Along with the model definition, we are also releasing model checkpoints trained
-on the COCO dataset.
-
-<b>Thanks to contributors</b>: Yongzhe Wang, Bo Chen, Hanxiao Liu, Le An
-(NVIDIA), Yu-Te Cheng (NVIDIA), Oliver Knieps (NVIDIA), and Josh Park (NVIDIA).
-
-### Context R-CNN
-
-We have released [Context R-CNN](https://arxiv.org/abs/1912.03538), a model that
-uses attention to incorporate contextual information images (e.g. from
-temporally nearby frames taken by a static camera) in order to improve accuracy.
-Importantly, these contextual images need not be labeled.
-
-*   When applied to a challenging wildlife detection dataset
-    ([Snapshot Serengeti](http://lila.science/datasets/snapshot-serengeti)),
-    Context R-CNN with context from up to a month of images outperforms a
-    single-frame baseline by 17.9% mAP, and outperforms S3D (a 3d convolution
-    based baseline) by 11.2% mAP.
-*   Context R-CNN leverages temporal context from the unlabeled frames of a
-    novel camera deployment to improve performance at that camera, boosting
-    model generalizeability.
-
-Read about Context R-CNN on the Google AI blog
-[here](https://ai.googleblog.com/2020/06/leveraging-temporal-context-for-object.html).
-
-We have provided code for generating data with associated context
-[here](g3doc/context_rcnn.md), and a sample config for a Context R-CNN model
-[here](samples/configs/context_rcnn_resnet101_snapshot_serengeti_sync.config).
-
-Snapshot Serengeti-trained Faster R-CNN and Context R-CNN models can be found in
-the
-[model zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md#snapshot-serengeti-camera-trap-trained-models).
-
-A colab demonstrating Context R-CNN is provided
-[here](colab_tutorials/context_rcnn_tutorial.ipynb).
-
-<b>Thanks to contributors</b>: Sara Beery, Jonathan Huang, Guanhang Wu, Vivek
-Rathod, Ronny Votel, Zhichao Lu, David Ross, Pietro Perona, Tanya Birch, and the
-Wildlife Insights AI Team.
-
-## Release Notes
-See [notes](g3doc/release_notes.md) for all past releases.
-
-## Getting Help
-
-To get help with issues you may encounter using the TensorFlow Object Detection
-API, create a new question on [StackOverflow](https://stackoverflow.com/) with
-the tags "tensorflow" and "object-detection".
-
-Please report bugs (actually broken code, not usage questions) to the
-tensorflow/models GitHub
-[issue tracker](https://github.com/tensorflow/models/issues), prefixing the
-issue name with "object_detection".
-
-Please check the [FAQ](g3doc/faq.md) for frequently asked questions before
-reporting an issue.
-
-## Maintainers
-
-* Jonathan Huang ([@GitHub jch1](https://github.com/jch1))
-* Vivek Rathod ([@GitHub tombstone](https://github.com/tombstone))
-* Vighnesh Birodkar ([@GitHub vighneshbirodkar](https://github.com/vighneshbirodkar))
-* Austin Myers ([@GitHub austin-myers](https://github.com/austin-myers))
-* Zhichao Lu ([@GitHub pkulzc](https://github.com/pkulzc))
-* Ronny Votel ([@GitHub ronnyvotel](https://github.com/ronnyvotel))
-* Yu-hui Chen ([@GitHub yuhuichen1015](https://github.com/yuhuichen1015))
-* Derek Chow  ([@GitHub derekjchow](https://github.com/derekjchow))
+### Version
