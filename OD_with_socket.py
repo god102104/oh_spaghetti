@@ -51,8 +51,9 @@ if args.usbcam:
 sys.path.append('..')
 
 # Import utilites
-from utils import label_map_util
-from utils import visualization_utils as vis_util
+sys.path.append('research/')
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
 
 # Name of the directory containing the object detection module we're using
 MODEL_NAME = 'ssdlite_mobilenet_v2_coco_2018_05_09'
@@ -62,10 +63,10 @@ CWD_PATH = os.getcwd()
 
 # Path to frozen detection graph .pb file, which contains the model that is used
 # for object detection.
-PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,'frozen_inference_graph.pb')
+PATH_TO_CKPT = os.path.join(CWD_PATH,'research','object_detection',MODEL_NAME,'frozen_inference_graph.pb')
 
 # Path to label map file
-PATH_TO_LABELS = os.path.join(CWD_PATH,'data','mscoco_label_map.pbtxt')
+PATH_TO_LABELS = os.path.join(CWD_PATH,'research','object_detection','data','mscoco_label_map.pbtxt')
 
 # Number of classes the object detector can identify
 NUM_CLASSES = 90
