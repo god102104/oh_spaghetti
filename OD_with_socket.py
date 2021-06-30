@@ -236,4 +236,9 @@ elif camera_type == 'usb':
 
 cv2.destroyAllWindows()
 
-
+# 알림
+# if(len(data_)!=0) :
+#         if ('dog' in data_[0]):
+#             print("개 잘있음")
+#         elif ('person' in data_[0]):
+#             print("사람있음!")
