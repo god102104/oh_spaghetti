@@ -29,13 +29,14 @@ import argparse
 import sys
 from socket import *
 from select import *
+import distance as dc
 import user_setting as usr
 
 # Set up camera constants
 #IM_WIDTH = 1280
 #IM_HEIGHT = 720
-IM_WIDTH = 320    #Use smaller resolution for
-IM_HEIGHT = 240   #slightly faster framerate
+IM_WIDTH = 640    #Use smaller resolution for
+IM_HEIGHT = 480   #slightly faster framerate
 
 # Select camera type (if user enters --usbcam when calling this script,
 # a USB webcam will be used)
@@ -116,6 +117,7 @@ num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 frame_rate_calc = 1
 freq = cv2.getTickFrequency()
 font = cv2.FONT_HERSHEY_SIMPLEX
+
 # Initialize camera and perform object detection.
 # The camera has to be set up and used differently depending on if it's a
 # Picamera or USB webcam.
@@ -129,7 +131,7 @@ if camera_type == 'picamera':
     # Initialize Picamera and grab reference to the raw capture
     camera = PiCamera()
     camera.resolution = (IM_WIDTH,IM_HEIGHT)
-    camera.framerate = 30
+    camera.framerate = 8
     rawCapture = PiRGBArray(camera, size=(IM_WIDTH,IM_HEIGHT))
     rawCapture.truncate(0)
     global data_
@@ -156,7 +158,6 @@ if camera_type == 'picamera':
             np.squeeze(classes).astype(np.int32),
             np.squeeze(scores),
             category_index,
-            skip_labels=True,
             use_normalized_coordinates=True,
             line_thickness=8,
             min_score_thresh=0.40)
@@ -164,25 +165,17 @@ if camera_type == 'picamera':
 
         # All the results have been drawn on the frame, so it's time to display it.
         cv2.imshow('Object detector', frame)
-        """
-        distance1 = dc1.measure_average()
-        distance2 = dc2.measure_average()
-        distance = distance1
-        if distance1<distance2 :
-            distance = distance1
-        else:
-            distance = distance2
-        print("Distance : %.1f" % distance)
-        """
-        clientSocket = socket(AF_INET, SOCK_STREAM)# 소켓을 생성한다.
+
+        #clientSocket = socket(AF_INET, SOCK_STREAM)# 소켓을 생성한다.
         print(data_)
-        clientSocket.connect(usr.ADDR)
-#        print(str(distance))
-        if data_ and ("dog" == data_[0] or "cat" == data_[0]):
-          clientSocket.send((data_[0]+";"+str(data_[1])).encode())
+        distance = dc.measure_average()
+        
+        #clientSocket.connect(usr.ADDR)
+        if data_ and (("dog" in data_[0]) or ("tv" in data_[0]) or ("cat" in data_[0])):
+          #clientSocket.send((data_[0]+";"+str(data_[1][0])).encode())
           print('connect is success')
         else:
-          clientSocket.send("noData".encode())
+          #clientSocket.send("noData".encode())
           print("nodata")
         t2 = cv2.getTickCount()
         time1 = (t2-t1)/freq
@@ -191,13 +184,11 @@ if camera_type == 'picamera':
         # Press 'q' to quit
         if cv2.waitKey(1) == ord('q'):
             print("end")
-            clientSocket = socket(AF_INET, SOCK_STREAM)#
-            clientSocket.connect(usr.ADDR)
-            clientSocket.send("end".encode())
+            #clientSocket.send("end".encode())
             break
         if cv2.waitKey(3) == ord('r'):
             print("check")
-            clientSocket.send("re".encode())
+            #clientSocket.send("re".encode())
         rawCapture.truncate(0)
 
     camera.close()
@@ -252,9 +243,4 @@ elif camera_type == 'usb':
 
 cv2.destroyAllWindows()
 
-# 알림
-# if(len(data_)!=0) :
-#         if ('dog' in data_[0]):
-#             print("개 잘있음")
-#         elif ('person' in data_[0]):
-#             print("사람있음!")
+
