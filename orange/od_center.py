@@ -5,7 +5,11 @@ import xhat as hw
 import sys
 sys.path.append('../')
 import user_setting as us
-import distance as ds
+
+
+def motorChange(motor1 = 0, motor2 = 0):
+    hw.motor_one_speed(motor1)
+    hw.motor_two_speed(motor2)
 
 ### client end msg error
 
@@ -16,56 +20,54 @@ ADDR = (HOST, PORT)
 serverSocket = socket(AF_INET, SOCK_STREAM)
 IMGCenter = 160
 
-def motorSpeed(motor1, motor2):
-  hw.motor_one_speed(motor1)
-  hw.motor_two_speed(motor2)
-
 serverSocket.bind(ADDR)
 print('bind')
 serverSocket.listen(100)
 print('listen')
 
-maxspeed = cfg.maxturn_speed
-minspeed = cfg.minturn_speed
+
 
 try:
+ dir = 1
  while(True):
 
   clientSocket, addr_info = serverSocket.accept()
 
   data = clientSocket.recv(65535)
   data = data.decode()
+  print('recieve data : ',data)
   if data == "end":
     print("end")
     clientSocket.close()
-    break
-  distance = ds.measure_average()
-  print('distance:{}, recieve data :{}'.format(distance,data))
-  if distance <= 30:
-    motorSpeed(0, 0)
-    continue
-  if data == "noData":
-    motorSpeed(cfg.firstMin, cfg.firstMax)
+    break;
+  elif data == "noData":
+    motorChange(cfg.firstMax, cfg.firstMin)
   else:
     temp = data.split(";")
     pet_center = float(temp[1])
     diff = pet_center - IMGCenter
+    print("diff: " + str(diff))
     if diff < -15 :
       #right
-      motorSpeed(maxspeed, minspeed)
+      motorChange(cfg.maxturn_speed, cfg.minturn_speed)
     elif diff > 15:
       #left
-      motorSpeed(minspeed, maxspeed)
-    elif diff>=-30 and diff<=30:
-      motorSpeed(cfg.normal_speed_right, cfg.normal_speed_right)
+      motorChange(cfg.minturn_speed, cfg.maxturn_speed)
+    
+#    elif diff>=-30 and diff<=30:
+#      if float(temp[2]) <30:
+#       hw.motor_one_speed(0)
+#       hw.motor_two_speed(0)
+#      else:
+#       hw.motor_one_speed(cfg.normal_speed_right)
+#       hw.motor_two_speed(cfg.normal_speed_left)
     else:
-      hw.motor_one_speed(0)
-      hw.motor_two_speed(0)
+      motorChange(0,0)
+
   clientSocket.close()
 
 except KeyboardInterrupt:
  hw.motor_clean()
- serverSocket.close()
 
 hw.motor_clean()
 
