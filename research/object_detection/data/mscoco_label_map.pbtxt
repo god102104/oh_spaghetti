@@ -294,11 +294,6 @@ item {
   display_name: "potted plant"
 }
 item {
-  name: "/m/03ssj5"
-  id: 65
-  display_name: "bed"
-}
-item {
   name: "/m/04bcr3"
   id: 67
   display_name: "dining table"
