@@ -18,12 +18,12 @@ AIcontrol = False
 modelheight = -160 ###-130 ###-150 #-115 #-130 #-150 #-250 #-200
 
 # training speed setting
-firstMin = -20
-firstMax = 30
-maxturn_speed = 30 
-minturn_speed = -20
-normal_speed_left = 15
-normal_speed_right = 15
+firstMin = -24
+firstMax = 48
+maxturn_speed = -40 
+minturn_speed = 20
+normal_speed_left = -20
+normal_speed_right = -20
 wheel_alignment_left = 0
 wheel_alignment_right = 0
 

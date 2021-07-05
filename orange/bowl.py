@@ -43,7 +43,9 @@ try:
   print('distance:{}, recieve data :{}'.format(distance,data))
   if distance <= 30:
     motorSpeed(0, 0)
-    continue
+    ss = "Find"
+    clientSocket.send(ss.encode())
+    continue 
   if data == "noData":
     motorSpeed(cfg.firstMin, cfg.firstMax)
   else:
@@ -61,7 +63,8 @@ try:
     else:
       hw.motor_one_speed(0)
       hw.motor_two_speed(0)
-  
+  ss = "Not Find"
+  clientSocket.send(ss.encode())
   clientSocket.close()
 
 except KeyboardInterrupt:
