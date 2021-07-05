@@ -274,6 +274,5 @@ if data_[0] == 'bowl' or data_[0] =='boat' or data_[0] == 'potted plant' or data
     model = load_model('bowl_kt2.h5')
     predict = model.predict_classes(test)
     for i in range(len(test)):
-        sys.stdout = open('result2.txt','w') 
         print("Predict : " + str(catg[predict[i]]))
 

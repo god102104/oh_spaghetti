@@ -1219,7 +1219,6 @@ def visualize_boxes_and_labels_on_image_array(
         thickness=0 if skip_boxes else line_thickness,
         display_str_list=box_to_display_str_map[box],
         use_normalized_coordinates=use_normalized_coordinates))
-
   return data 
 
 
