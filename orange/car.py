@@ -42,6 +42,7 @@ try:
   distance = ds.measure_average()
   print('distance:{}, recieve data :{}'.format(distance,data))
   if distance <= 30:
+
     motorSpeed(0, 0)
     continue
   if data == "noData":
