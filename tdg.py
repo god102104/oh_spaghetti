@@ -186,15 +186,18 @@ if camera_type == 'picamera':
         cv2.imshow('Object detector', frame)
         clientSocket = socket(AF_INET, SOCK_STREAM)# 소켓을 생성한다.
         clientSocket.connect(usr.ADDR)
+        print(data_)
         if data_ and (data_[0] == 'bowl' or data_[0] =='potted plant' or data_[0] == 'boat' or data_[0] == 'sink' or data_[0] == 'frisbee' or data_[0] == 'toilet'):
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
         else:
           clientSocket.send("noData".encode())
+          print("nodata")
         t2 = cv2.getTickCount()
         time1 = (t2-t1)/freq
         frame_rate_calc = 1/time1
         data = clientSocket.recv(1024)
         data = data.decode()
+        print(data)
         if data == "Find":
             break
         # Press 'q' to quit
@@ -247,7 +250,7 @@ elif camera_type == 'usb':
         cv2.imshow('Object detector', frame)
         check = 0
         if data_ and data_[0]:
-            #print(data_[0])
+            print(data_[0])
             check = data_[0]
         if check == 'bowl' or check== 'toilet':
             break
@@ -271,8 +274,5 @@ if data_[0] == 'bowl' or data_[0] =='boat' or data_[0] == 'potted plant' or data
     model = load_model('bowl_kt2.h5')
     predict = model.predict_classes(test)
     for i in range(len(test)):
-        ff = open('result2.txt','w') 
-        ff.write(str(catg[predict[i]])) 
-        ff.close()
-        print("Predict :" + str(catg[predict[i]]))
+        print("Predict : " + str(catg[predict[i]]))
 

@@ -1,23 +1,3 @@
-######## Picamera Object Detection Using Tensorflow Classifier #########
-#
-# Author: Evan Juras
-# Date: 4/15/18
-# Description: 
-# This program uses a TensorFlow classifier to perform object detection.
-# It loads the classifier uses it to perform object detection on a Picamera feed.
-# It draws boxes and scores around the objects of interest in each frame from
-# the Picamera. It also can be used with a webcam by adding "--usbcam"
-# when executing this script from the terminal.
-
-## Some of the code is copied from Google's example at
-## https://github.com/tensorflow/models/blob/master/research/object_detection/object_detection_tutorial.ipynb
-
-## and some is copied from Dat Tran's example at
-## https://github.com/datitran/object_detector_app/blob/master/object_detection_app.py
-
-## but I changed it to make it more understandable to me.
-
-
 # Import packages
 import os
 import cv2
@@ -37,6 +17,7 @@ from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
 def ObjectDetection(cs):
+    stop_thread = False
     camera_type = 'picamera'
     IM_WIDTH = 320    #Use smaller resolution for
     IM_HEIGHT = 240   #slightly faster framerate
@@ -107,10 +88,9 @@ def ObjectDetection(cs):
     camera.framerate = 30
     rawCapture = PiRGBArray(camera, size=(IM_WIDTH,IM_HEIGHT))
     rawCapture.truncate(0)
-    global data_
-    flag = False
-    stop_thread = False
+
     for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
+        print(str(stop_thread))
         if stop_thread == True:
             break
         t1 = cv2.getTickCount()
@@ -143,38 +123,16 @@ def ObjectDetection(cs):
         # All the results have been drawn on the frame, so it's time to display it.
         cv2.imshow('Object detector', frame)
         clientSocket = socket(AF_INET, SOCK_STREAM)# 소켓을 생성한다.
-       # print(data_)
         clientSocket.connect(usr.ADDR)
-#        print(str(distance))
         if data_ and ("dog" == data_[0] or "cat" == data_[0]):
-          if flag == False:
-              flag = True
-              cs.send("Find".encode())
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
-          #print('connect is success')
         else:
           clientSocket.send("noData".encode())
-      #    print("nodata")
         t2 = cv2.getTickCount()
         time1 = (t2-t1)/freq
         frame_rate_calc = 1/time1
-
-        # Press 'q' to quit
-        if cv2.waitKey(1) == ord('q'):
-            print("end")
-            clientSocket = socket(AF_INET, SOCK_STREAM)#
-            clientSocket.connect(usr.ADDR)
-            clientSocket.send("end".encode())
-            break
-        if cv2.waitKey(3) == ord('r'):
-            print("check")
-            clientSocket.send("re".encode())
         rawCapture.truncate(0)
 
     camera.close()
 
- # cv2.destroyAllWindows()
-
-if __name__ == "__main__":
-    ObjectDetection()
-    cv2.detroyAllWindows()
+cv2.destroyAllWindows()
