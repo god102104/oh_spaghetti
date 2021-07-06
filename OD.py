@@ -138,7 +138,7 @@ if camera_type == 'picamera':
         frame.setflags(write=1)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_expanded = np.expand_dims(frame_rgb, axis=0)
-
+        print(camera._check_camera_open())
         # Perform the actual detection by running the model with the image as input
         (boxes, scores, classes, num) = sess.run(
             [detection_boxes, detection_scores, detection_classes, num_detections],

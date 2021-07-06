@@ -1,21 +1,3 @@
-######## Picamera Object Detection Using Tensorflow Classifier #########
-#
-# Author: Evan Juras
-# Date: 4/15/18
-# Description: 
-# This program uses a TensorFlow classifier to perform object detection.
-# It loads the classifier uses it to perform object detection on a Picamera feed.
-# It draws boxes and scores around the objects of interest in each frame from
-# the Picamera. It also can be used with a webcam by adding "--usbcam"
-# when executing this script from the terminal.
-
-## Some of the code is copied from Google's example at
-## https://github.com/tensorflow/models/blob/master/research/object_detection/object_detection_tutorial.ipynb
-
-## and some is copied from Dat Tran's example at
-## https://github.com/datitran/object_detector_app/blob/master/object_detection_app.py
-
-## but I changed it to make it more understandable to me.
 
 
 # Import packages
@@ -28,15 +10,17 @@ from keras.models import load_model
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import tensorflow as tf
-import argparse
 import sys
+import time
 import user_setting as usr
 from socket import *
+import asyncio
+from picam import *
 
 #############################################
 #-----------insert bolw detection------------
 
-catg = ["full", "empty"]
+catg = ["Full", "Empty"]
 
 def Dataization(img):
     image_w = 256
@@ -51,20 +35,9 @@ def Dataization(img):
 
 
 # Set up camera constants
-#IM_WIDTH = 1280
-#IM_HEIGHT = 720
 IM_WIDTH = 320    #Use smaller resolution for
 IM_HEIGHT = 240   #slightly faster framerate
 
-# Select camera type (if user enters --usbcam when calling this script,
-# a USB webcam will be used)
-camera_type = 'picamera'
-parser = argparse.ArgumentParser()
-parser.add_argument('--usbcam', help='Use a USB webcam instead of picamera',
-                    action='store_true')
-args = parser.parse_args()
-if args.usbcam:
-    camera_type = 'usb'
 
 # This is needed since the working directory is the object_detection folder.
 sys.path.append('..')
@@ -131,27 +104,29 @@ detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
 # Number of objects detected
 num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
-# Initialize frame rate calculation
-frame_rate_calc = 1
-freq = cv2.getTickFrequency()
-font = cv2.FONT_HERSHEY_SIMPLEX
+if not picam_check:
+    picam_check = True
 
-# Initialize camera and perform object detection.
-# The camera has to be set up and used differently depending on if it's a
-# Picamera or USB webcam.
+global frame
 
-# I know this is ugly, but I basically copy+pasted the code for the object
-# detection loop twice, and made one work for Picamera and the other work
-# for USB.
-
-### Picamera ###
-if camera_type == 'picamera':
-    # Initialize Picamera and grab reference to the raw capture
-    camera = PiCamera()
-    camera.resolution = (IM_WIDTH,IM_HEIGHT)
-    camera.framerate = 30
-    rawCapture = PiRGBArray(camera, size=(IM_WIDTH,IM_HEIGHT))
+def OD():
+    global frame
+    global camera
+    # Initialize frame rate calculation
+    frame_rate_calc = 1
+    freq = cv2.getTickFrequency()
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    try:
+        camera._check_camera_open()
+    except Exception as e:
+        if e.__class__.__name__ =="PiCameraClosed":
+         camera = PiCamera()
+         camera.resolution = (320,240)
+         camera.framerate = 30
+    rawCapture = PiRGBArray(camera, size=(IM_WIDTH,IM_HEIGHT))     
     rawCapture.truncate(0)
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    clientSocket.connect(usr.ADDR2)
     for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
 
         t1 = cv2.getTickCount()
@@ -184,8 +159,6 @@ if camera_type == 'picamera':
 
         # All the results have been drawn on the frame, so it's time to display it.
         cv2.imshow('Object detector', frame)
-        clientSocket = socket(AF_INET, SOCK_STREAM)# 소켓을 생성한다.
-        clientSocket.connect(usr.ADDR)
         if data_ and (data_[0] == 'bowl' or data_[0] =='potted plant' or data_[0] == 'boat' or data_[0] == 'sink' or data_[0] == 'frisbee' or data_[0] == 'toilet'):
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
         else:
@@ -196,73 +169,20 @@ if camera_type == 'picamera':
         data = clientSocket.recv(1024)
         data = data.decode()
         if data == "Find":
-            break
-        # Press 'q' to quit
-        if cv2.waitKey(1) == ord('q'):
-            clientSocket = socket(AF_INET, SOCK_STREAM)#
-            clientSocket.connect(usr.ADDR)
-            clientSocket.send("end".encode())
-            break
+          clientSocket.close()
+          return data_[0]
 
         rawCapture.truncate(0)
 
     camera.close()
 
-### USB webcam ###
-elif camera_type == 'usb':
-    # Initialize USB webcam feed
-    camera = cv2.VideoCapture(0)
-    ret = camera.set(3,IM_WIDTH)
-    ret = camera.set(4,IM_HEIGHT)
 
-    while(True):
+    cv2.destroyAllWindows()
+    sess.close()
 
-        t1 = cv2.getTickCount()
-
-        # Acquire frame and expand frame dimensions to have shape: [1, None, None, 3]
-        # i.e. a single-column array, where each item in the column has the pixel RGB value
-        ret, frame = camera.read()
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_expanded = np.expand_dims(frame_rgb, axis=0)
-
-        # Perform the actual detection by running the model with the image as input
-        (boxes, scores, classes, num) = sess.run(
-            [detection_boxes, detection_scores, detection_classes, num_detections],
-            feed_dict={image_tensor: frame_expanded})
-
-        # Draw the results of the detection (aka 'visulaize the results')
-        data_ = vis_util.visualize_boxes_and_labels_on_image_array(
-            frame,
-            np.squeeze(boxes),
-            np.squeeze(classes).astype(np.int32),
-            np.squeeze(scores),
-            category_index,
-            use_normalized_coordinates=True,
-            line_thickness=8,
-            min_score_thresh=0.4)
-
-        cv2.putText(frame,"FPS: {0:.2f}".format(frame_rate_calc),(30,50),font,1,(255,255,0),2,cv2.LINE_AA)
-        
-        # All the results have been drawn on the frame, so it's time to display it.
-        cv2.imshow('Object detector', frame)
-        check = 0
-        if data_ and data_[0]:
-            #print(data_[0])
-            check = data_[0]
-        if check == 'bowl' or check== 'toilet':
-            break
-        # Press 'q' to quit
-        if cv2.waitKey(1) == ord('q'):
-            break
-
-    camera.release()
-
-cv2.destroyAllWindows()
-sess.close()
-
-
-if data_[0] == 'bowl' or data_[0] =='boat' or data_[0] == 'potted plant' or data_[0] == 'sink' or data_[0] == 'frisbee' or data_[0] == 'toilet':
-    
+def check(data):
+  global frame
+  if data == 'bowl' or data =='boat' or data == 'potted plant' or data == 'sink' or data == 'frisbee' or data == 'toilet':
     src = []
     name = []
     test = []
@@ -271,8 +191,12 @@ if data_[0] == 'bowl' or data_[0] =='boat' or data_[0] == 'potted plant' or data
     model = load_model('bowl_kt2.h5')
     predict = model.predict_classes(test)
     for i in range(len(test)):
-        ff = open('result2.txt','w') 
-        ff.write(str(catg[predict[i]])) 
-        ff.close()
-        print("Predict :" + str(catg[predict[i]]))
+        return str(catg[predict[i]])
+        #print("Predict :" + str(catg[predict[i]]))
 
+def remain_food_check():
+    time.sleep(5)
+    return check(OD())
+
+if __name__ == "__main__":
+    print(remain_food_check())
