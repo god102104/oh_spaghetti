@@ -36,7 +36,7 @@ sys.path.append('research/')
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
-def ObjectDetection(cs):
+def ObjectDetection():
     camera_type = 'picamera'
     IM_WIDTH = 320    #Use smaller resolution for
     IM_HEIGHT = 240   #slightly faster framerate
@@ -149,7 +149,7 @@ def ObjectDetection(cs):
         if data_ and ("dog" == data_[0] or "cat" == data_[0]):
           if flag == False:
               flag = True
-              cs.send("Find".encode())
+              #cs.send("Find".encode())
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
           #print('connect is success')
         else:

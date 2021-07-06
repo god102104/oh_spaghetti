@@ -1,22 +1,3 @@
-######## Picamera Object Detection Using Tensorflow Classifier #########
-#
-# Author: Evan Juras
-# Date: 4/15/18
-# Description: 
-# This program uses a TensorFlow classifier to perform object detection.
-# It loads the classifier uses it to perform object detection on a Picamera feed.
-# It draws boxes and scores around the objects of interest in each frame from
-# the Picamera. It also can be used with a webcam by adding "--usbcam"
-# when executing this script from the terminal.
-
-## Some of the code is copied from Google's example at
-## https://github.com/tensorflow/models/blob/master/research/object_detection/object_detection_tutorial.ipynb
-
-## and some is copied from Dat Tran's example at
-## https://github.com/datitran/object_detector_app/blob/master/object_detection_app.py
-
-## but I changed it to make it more understandable to me.
-
 
 # Import packages
 import os, re, glob
@@ -36,7 +17,6 @@ from socket import *
 #############################################
 #-----------insert bolw detection------------
 
-catg = ["full", "empty"]
 
 def Dataization(img):
     image_w = 256
@@ -46,27 +26,6 @@ def Dataization(img):
 
     return (img/256)
 
-
-#############################################
-
-
-# Set up camera constants
-#IM_WIDTH = 1280
-#IM_HEIGHT = 720
-IM_WIDTH = 320    #Use smaller resolution for
-IM_HEIGHT = 240   #slightly faster framerate
-
-# Select camera type (if user enters --usbcam when calling this script,
-# a USB webcam will be used)
-camera_type = 'picamera'
-parser = argparse.ArgumentParser()
-parser.add_argument('--usbcam', help='Use a USB webcam instead of picamera',
-                    action='store_true')
-args = parser.parse_args()
-if args.usbcam:
-    camera_type = 'usb'
-
-# This is needed since the working directory is the object_detection folder.
 sys.path.append('..')
 
 # Import utilites
@@ -145,7 +104,8 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 # for USB.
 
 ### Picamera ###
-if camera_type == 'picamera':
+def dog_bowl():
+    catg = ["full", "empty"]
     # Initialize Picamera and grab reference to the raw capture
     camera = PiCamera()
     camera.resolution = (IM_WIDTH,IM_HEIGHT)
@@ -186,15 +146,18 @@ if camera_type == 'picamera':
         cv2.imshow('Object detector', frame)
         clientSocket = socket(AF_INET, SOCK_STREAM)# 소켓을 생성한다.
         clientSocket.connect(usr.ADDR)
+        print(data_)
         if data_ and (data_[0] == 'bowl' or data_[0] =='potted plant' or data_[0] == 'boat' or data_[0] == 'sink' or data_[0] == 'frisbee' or data_[0] == 'toilet'):
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
         else:
           clientSocket.send("noData".encode())
+          print("nodata")
         t2 = cv2.getTickCount()
         time1 = (t2-t1)/freq
         frame_rate_calc = 1/time1
         data = clientSocket.recv(1024)
         data = data.decode()
+        print(data)
         if data == "Find":
             break
         # Press 'q' to quit
@@ -247,7 +210,7 @@ elif camera_type == 'usb':
         cv2.imshow('Object detector', frame)
         check = 0
         if data_ and data_[0]:
-            #print(data_[0])
+            print(data_[0])
             check = data_[0]
         if check == 'bowl' or check== 'toilet':
             break
@@ -274,5 +237,5 @@ if data_[0] == 'bowl' or data_[0] =='boat' or data_[0] == 'potted plant' or data
         ff = open('result2.txt','w') 
         ff.write(str(catg[predict[i]])) 
         ff.close()
-        print("Predict :" + str(catg[predict[i]]))
+        print("Predict : " + str(catg[predict[i]]))
 

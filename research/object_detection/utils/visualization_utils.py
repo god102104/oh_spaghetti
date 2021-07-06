@@ -1204,7 +1204,7 @@ def visualize_boxes_and_labels_on_image_array(
       score = round(100*scores[0])
       box_to_display_str_map[box].append(display_str)
       box_to_color_map[box] = STANDARD_COLORS[classes[0] % len(STANDARD_COLORS)]
-  print('{}: {}%'.format(display_str, round(100*scores[0])))
+ # print('{}: {}%'.format(display_str, round(100*scores[0])))
   data.append(class_name)
   # Draw all boxes onto image.
   for box, color in box_to_color_map.items():
