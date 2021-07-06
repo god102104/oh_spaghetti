@@ -4,15 +4,12 @@ import config as cfg
 import xhat as hw
 import sys
 sys.path.append('../')
-import user_setting as us
+import user_setting as usr
 import distance as ds
 
 ### client end msg error
 
-HOST = us.HOST
-PORT = us.PORT
 BUFSIZE = 1024
-ADDR = (HOST, PORT)
 serverSocket = socket(AF_INET, SOCK_STREAM)
 IMGCenter = 160
 
@@ -20,7 +17,7 @@ def motorSpeed(motor1, motor2):
   hw.motor_one_speed(motor1)
   hw.motor_two_speed(motor2)
 
-serverSocket.bind(ADDR)
+serverSocket.bind(usr.ADDR2)
 print('bind')
 serverSocket.listen(100)
 print('listen')
@@ -28,12 +25,15 @@ print('listen')
 maxspeed = cfg.maxturn_speed
 minspeed = cfg.minturn_speed
 
+clientSocket, addr_info = serverSocket.accept()
+
 try:
  while(True):
 
-  clientSocket, addr_info = serverSocket.accept()
-
   data = clientSocket.recv(65535)
+  if not data:
+   clientSocket.close()
+   break
   data = data.decode()
   if data == "end":
     print("end")
@@ -45,7 +45,7 @@ try:
     motorSpeed(0, 0)
     ss = "Find"
     clientSocket.send(ss.encode())
-    continue 
+    break 
   if data == "noData":
     motorSpeed(cfg.firstMin, cfg.firstMax)
   else:
@@ -65,11 +65,11 @@ try:
       hw.motor_two_speed(0)
   ss = "Not Find"
   clientSocket.send(ss.encode())
-  clientSocket.close()
 
 except KeyboardInterrupt:
  hw.motor_clean()
  serverSocket.close()
+ clientSocket.close()
 
 hw.motor_clean()
 
