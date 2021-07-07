@@ -135,7 +135,7 @@ def ObjectDetection(t):
         # All the results have been drawn on the frame, so it's time to display it.
         cv2.imshow('Object detector', frame)
         if data_ and ("dog" == data_[0] or "cat" == data_[0]):
-          clientSocket.send((data_[0]+";"+str(data_[1])).encode())
+          clientSocket.send((data_[0]+";"+str(data_[1])+";").encode())
         else:
           clientSocket.send("noData".encode())
         t2 = cv2.getTickCount()

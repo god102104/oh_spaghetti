@@ -107,7 +107,6 @@ int main()
     // Raspberry pi wiringPiSetup...
 	printf("dht11 Raspberry pi\n");
 	if(wiringPiSetup() == -1) exit(1); 
-        int flag = 0;
 	local_loop = (1);
 	while(local_loop == (1)) 
 	{
@@ -161,11 +160,9 @@ int main()
 				double dData2 = (double)dht11_dat[2];
     	    	double dData3 = (double)dht11_dat[3];
 				double dOut = dData2 + dData3;
-                                if(!flag && dOut>=29.0){
-			          flag = 1;
-				  im_send_numdata("condition", dOut, 0);
-				}
-				// send data to IoTMakers ...
+				// send data 
+				// to IoTMakers ...
+				if(dOut>=31) {im_send_numdata("Temp", dOut,0);break;}
 				im_send_numdata("Temp", dOut, 0);  
 			}
 		}

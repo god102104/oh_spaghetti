@@ -4,14 +4,18 @@ import os
 import findDog as FD
 import dog_bowl as bowl
 import user_setting as usr
-flag = False
+from gpiozero import LED
+from time import sleep
 
+flag = False
+_led = LED(17)
 
 while True:
    clientSocket = socket(AF_INET, SOCK_STREAM)
    ADDR = (usr.Mobile,5050)
    clientSocket.connect(ADDR)
    print("connect")
+   _led.off()
    if not flag :
     data = clientSocket.recv(1024)
     data = data.decode()
@@ -33,7 +37,8 @@ while True:
     flag = False 
    elif data == "3\n":
     flag = True
-    
+    _led.on()
+ 
     print("Aircon!!")
     flag = False
    clientSocket.close()
