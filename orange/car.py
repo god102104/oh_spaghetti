@@ -48,7 +48,7 @@ try:
     motorSpeed(cfg.firstMin, cfg.firstMax)
   else:
     temp = data.split(";")
-    pet_center = float(temp[1])
+    pet_center = float(temp[1].split(";")[0])
     diff = pet_center - IMGCenter
     if diff < -15 :
       #right
