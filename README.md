@@ -2,6 +2,18 @@
 
 KT 인턴십 1조 돌봐주개의 깃허브입니다
 
+Main 기능 파일
+1. 펫 인식 및 추적 기능
+oh_spaghetti/findDog.py
+oh_spaghetti/orange/car.py #주행
+
+2. 밥 그릇 인식 및 잔량확인 기능
+oh_spaghetti/dog_bowl.py
+oh_spaghetti/orange/bowl.py#주행
+
+3. 앱주소 
+https://github.com/msShim/pet_butler
+
 ## Install
 ### 1. Update the Raspberry Pi
 First, the Raspberry Pi needs to be fully updated. Open a terminal and issue:
