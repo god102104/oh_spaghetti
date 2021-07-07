@@ -12,20 +12,23 @@ clientSocket.connect(ADDR)
 past = "0\n"
 print("connect")
 while True:
+
   data = clientSocket.recv(1024)
+  os.system("sudo fuser -k -n tcp 7000")
   data = data.decode()
   print(data)
-  if data =="1\n" and past == data:
+  if data== "1\n" and data == past:
    continue
   if data=="1\n":
-   flag = True
    print("Find")
-   os.system("sudo fuser -k -n tcp 4000")
-   time.sleep(1)
+ #  if data == "1\n" and not flag:
+ #  os.system("sudo fuser -k -n tcp 4000")
+   flag = True
+ #  time.sleep(1)
    subprocess.Popen("python3 ~/oh_spaghetti/orange/car.py", shell = True)
   elif data == "2\n":
    flag = True
-   os.system("sudo fuser -k -n tcp 7000")
+   os.system("sudo fuser -k -n tcp 4000")
    time.sleep(1)
    subprocess.Popen("python3 ~/oh_spaghetti/orange/bowl.py", shell = True) 
    print("Check")
