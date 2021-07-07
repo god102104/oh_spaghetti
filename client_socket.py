@@ -6,6 +6,7 @@ import dog_bowl as bowl
 import user_setting as usr
 flag = False
 
+
 while True:
    clientSocket = socket(AF_INET, SOCK_STREAM)
    ADDR = (usr.Mobile,5050)
@@ -18,6 +19,7 @@ while True:
    if data=="1\n":
     flag = True
     print("Find!!")
+    past = data
     data = FD.findDog(clientSocket)
    elif data == "2\n":
     flag = True
@@ -31,6 +33,7 @@ while True:
     flag = False 
    elif data == "3\n":
     flag = True
+    
     print("Aircon!!")
     flag = False
    clientSocket.close()

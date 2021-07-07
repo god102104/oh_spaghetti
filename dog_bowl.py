@@ -171,7 +171,8 @@ def OD():
         if data == "Find":
           clientSocket.close()
           return data_[0]
-
+        if cv2.waitKey(1) == ord('q'):
+            break
         rawCapture.truncate(0)
 
     camera.close()

@@ -72,18 +72,8 @@ if not picam_check:
     picam_check = True
 
 global Sdata
-global flag
-global t2
-flag = False
-def sendDetect(cs):
-    global flag
-    while True:
-        if flag:
-            cs.send("Find".encode())
-            cs.close()
-            cs = socket(AF_INET, SOCK_STREAM)
-            cs.connect((usr.Mobile, 5050))
-            break
+#global t2
+#flag = False
 
 def check(cs):
     global Sdata
@@ -96,7 +86,7 @@ def check(cs):
 
 def ObjectDetection(t):
     global camera
-    global flag
+    time.sleep(5)
     frame_rate_calc = 1
     freq = cv2.getTickFrequency()
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -114,6 +104,7 @@ def ObjectDetection(t):
     for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
         t1 = cv2.getTickCount()
         if not t.is_alive():
+            print("aLive")
             clientSocket.send("end".encode())
             break
     # Acquire frame and expand frame dimensions to have shape: [1, None, None, 3]
@@ -144,9 +135,6 @@ def ObjectDetection(t):
         # All the results have been drawn on the frame, so it's time to display it.
         cv2.imshow('Object detector', frame)
         if data_ and ("dog" == data_[0] or "cat" == data_[0]):
-          if flag == False:
-              flag = True
-              
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
         else:
           clientSocket.send("noData".encode())
@@ -154,21 +142,24 @@ def ObjectDetection(t):
         time1 = (t2-t1)/freq
         frame_rate_calc = 1/time1
         rawCapture.truncate(0)
+        if cv2.waitKey(1) == 'q':
+            break
+
 
     camera.close()
 
     cv2.destroyAllWindows()
 
 def findDog(cs):
-    global t2
+   # global t2
     t1 = Thread(target = check, args = (cs,))
-    t2 = Thread(target = ObjectDetection, args = (t1,))
-    t3 = Thread(target = sendDetect, args = (cs,))
+#    t2 = Thread(target = ObjectDetection, args = (t1,))
     t1.start()
+    ObjectDetection(t1)
+    t1.join()
     time.sleep(5)
-    t2.start()
-    t3.start()
-    t2.join()
+#    t2.start()
+    #t2.join()
  
     return Sdata
 
