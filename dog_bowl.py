@@ -22,7 +22,7 @@ from picam import *
 
 catg = ["Full", "Empty"]
 
-def Dataization(img):
+def Dataization(img): #cv2 image box size setting 
     image_w = 256
     image_h = 256
     #img = cv2.imread(img_path)
