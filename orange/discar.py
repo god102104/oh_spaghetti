@@ -27,9 +27,9 @@ try:
   clientSocket, addr_info = serverSocket.accept()
 
   data = clientSocket.recv(65535)
-  data = data.decode()
+  data = data.decode() 
   print('recieve data : ',data)
-  if float(data) <50:
+  if float(data) <50: #값이 50보다 작다면 정지
     hw.motor_one_speed(0)
     hw.motor_two_speed(0)
   else:
@@ -38,7 +38,7 @@ try:
   clientSocket.close()
 
 except KeyboardInterrupt:
- hw.motor_clean()
+ hw.motor_clean() #motor의 GPIO connection cleanup
 
 hw.motor_clean()
 
