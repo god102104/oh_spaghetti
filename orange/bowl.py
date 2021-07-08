@@ -30,41 +30,41 @@ clientSocket, addr_info = serverSocket.accept()
 try:
  while(True):
 
-  data = clientSocket.recv(65535)
+  data = clientSocket.recv(65535) #recevied data 저장
   if not data:
-   clientSocket.close()
+   clientSocket.close() #data 가 없을시 socket close
    break
-  data = data.decode()
-  if data == "end":
+  data = data.decode() #
+  if data == "end": #end 라는 data 수신 시 "end"출력 후 socket close
     print("end")
     clientSocket.close()
     break
-  distance = ds.measure_average()
-  print('distance:{}, recieve data :{}'.format(distance,data))
-  if distance <= 30:
+  distance = ds.measure_average() #ds.measuer_average()를 통해 3번의 초음파센서 위치 측정값의 평균으로 거리를 잡음.
+  print('distance:{}, recieve data :{}'.format(distance,data)) 
+  if distance <= 30: #distance 가 30cm보다 같거나 작으면 모터를 정지.
     motorSpeed(0, 0)
     ss = "Find"
-    clientSocket.send(ss.encode())
+    clientSocket.send(ss.encode()) #find라는 문자열을 encoding하여 socket으로 send
     break 
   if data == "noData":
-    motorSpeed(cfg.firstMin, cfg.firstMax)
+    motorSpeed(cfg.firstMin, cfg.firstMax) #data를 찾지 못했을 경우 계속해서 이동
   else:
-    temp = data.split(";")
-    pet_center = float(temp[1])
-    diff = pet_center - IMGCenter
-    if diff < -15 :
+    temp = data.split(";") #받은 데이터를 ;를 기준으로 분리. clientSocket.send((data_[0]+";"+str(data_[1])).encode())과 같은 형식으로 통신하므로 data[0]과 data[1]을 따로 얻기위함.
+    pet_center = float(temp[1]) #data[1]을 물체의 center 값으로 이용. 
+    diff = pet_center - IMGCenter #diff = 중앙값과 이미지 출력창의 중앙값의 차이를 저장
+    if diff < -15 : # diff가 -15 -> 물체가 왼쪽으로 치우쳐있으므로 우측 이동 
       #right
       motorSpeed(maxspeed, minspeed)
-    elif diff > 15:
+    elif diff > 15: #diff 가 15 -> 물체가 오른쪽으로 치우쳐있으므로 좌측 이동
       #left
       motorSpeed(minspeed, maxspeed)
-    elif diff>=-30 and diff<=30:
+    elif diff>=-30 and diff<=30: # abs(diff) =< 30일 경우, 좌우의 모터속도를 일치시켜 전진
       motorSpeed(cfg.normal_speed_right, cfg.normal_speed_right)
     else:
       hw.motor_one_speed(0)
       hw.motor_two_speed(0)
   ss = "Not Find"
-  clientSocket.send(ss.encode())
+  clientSocket.send(ss.encode()) 
 
 except KeyboardInterrupt:
  hw.motor_clean()
