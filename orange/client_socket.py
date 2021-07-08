@@ -14,7 +14,7 @@ print("connect")
 while True:
 
   data = clientSocket.recv(1024)
-  os.system("sudo fuser -k -n tcp 7000")
+  os.system("sudo fuser -k -n tcp 7000") #7000port 를 사용하는 프로세스를 강제종료. '찾아줘' 명령 이후 다음 작업에도 프로세스가 동작하여 문제가 발생하지 않도록
   data = data.decode()
   print(data)
   if data== "1\n" and data == past:
