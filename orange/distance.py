@@ -7,20 +7,20 @@ def measure():
     GPIO.output(GPIO_TRIGGER, True)
     time.sleep(0.00001)
     GPIO.output(GPIO_TRIGGER, False)
-    start = time.time()
+    start = time.time() #유닉스 초 시간 표시
 
-    while GPIO.input(GPIO_ECHO) == 0:
+    while GPIO.input(GPIO_ECHO) == 0: # input값이 없다면 계속해서 초음파 측정
         start = time.time()
 
-    while GPIO.input(GPIO_ECHO) == 1:
+    while GPIO.input(GPIO_ECHO) == 1: 
         stop = time.time()
 
-    elapsed = stop-start
+    elapsed = stop-start #초음파를 통한 거리 측정. 
     distance = (elapsed * 34300)/2
 
     return distance
 
-def measure_average():
+def measure_average(): #평균 거리를 측정하기 위해 3번의 측정 평균을 사용함
     distance1=measure()
     time.sleep(0.1)
     distance2=measure()
