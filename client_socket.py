@@ -11,10 +11,10 @@ flag = False
 _led = LED(17)
 
 while True:
-   clientSocket = socket(AF_INET, SOCK_STREAM)
+   clientSocket = socket(AF_INET, SOCK_STREAM) 
    ADDR = (usr.Mobile,5050)
    clientSocket.connect(ADDR)
-   print("connect")
+   print("connect") #socket connection check
    _led.off()
    if not flag :
     data = clientSocket.recv(1024)
@@ -22,15 +22,15 @@ while True:
    print(data)
    if data=="1\n":
     flag = True
-    print("Find!!")
+    print("Find!!") #dog-Object find message
     past = data
     data = FD.findDog(clientSocket)
    elif data == "2\n":
     flag = True
-    print("Check!!")
+    print("Check!!") #dog-food check message
     result = bowl.remain_food_check()
     if not result:
-        result = "Full"
+        result = "Full" #result (Full, Empty)
     if result:
         print(result)
         clientSocket.send(result.encode())
@@ -39,6 +39,6 @@ while True:
     flag = True
     _led.on()
  
-    print("Aircon!!")
+    print("Aircon!!") 
     flag = False
    clientSocket.close()
