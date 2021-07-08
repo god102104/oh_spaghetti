@@ -9,6 +9,9 @@ import distance as ds
 
 ### client end msg error
 
+
+#전체적인 내용은 bowl.py와 유사합니다.
+
 BUFSIZE = 1024
 serverSocket = socket(AF_INET, SOCK_STREAM)
 IMGCenter = 160
@@ -22,7 +25,7 @@ print('bind')
 serverSocket.listen(100)
 print('listen')
 
-maxspeed = cfg.maxturn_speed
+maxspeed = cfg.maxturn_speed #car speed관련, config.py 를 참조.
 minspeed = cfg.minturn_speed
 clientSocket, addr_info = serverSocket.accept()
 
