@@ -147,19 +147,19 @@ def ObjectDetection(t):
           if flag == False:
               flag = True
               
-          clientSocket.send((data_[0]+";"+str(data_[1])).encode())
+          clientSocket.send((data_[0]+";"+str(data_[1])).encode()) #Send Class data and center location about object
         else:
-          clientSocket.send("noData".encode())
-        t2 = cv2.getTickCount()
-        time1 = (t2-t1)/freq
+          clientSocket.send("noData".encode()) #if there is no data about class and center , send "nodata" message to host
+        t2 = cv2.getTickCount() #get cycle count
+        time1 = (t2-t1)/freq #Calculation for actual time 
         frame_rate_calc = 1/time1
-        rawCapture.truncate(0)
+        rawCapture.truncate(0) #refresh
 
     camera.close()
 
     cv2.destroyAllWindows()
 
-def findDog(cs):
+def findDog(cs): #Enhanced performance using thread
     global t2
     t1 = Thread(target = check, args = (cs,))
     t2 = Thread(target = ObjectDetection, args = (t1,))
