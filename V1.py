@@ -112,16 +112,16 @@ def ObjectDetection(cs):
        # print(data_)
         clientSocket.connect(usr.ADDR)
 #        print(str(distance))
-        if data_ and ("dog" == data_[0] or "cat" == data_[0]):
+        if data_ and ("dog" == data_[0] or "cat" == data_[0]): #data = object detection result, data_[0]=object Class, data_[1] = center 
           if flag == False:
               flag = True
               cs.send("Find".encode())
-          clientSocket.send((data_[0]+";"+str(data_[1])).encode())
+          clientSocket.send((data_[0]+";"+str(data_[1])).encode()) #for socket connection, we merge data_[0] and data_[1] 
           #print('connect is success')
         else:
           clientSocket.send("noData".encode())
       #    print("nodata")
-        t2 = cv2.getTickCount()
+        t2 = cv2.getTickCount() #Using Tickcount for calculating actual time 
         time1 = (t2-t1)/freq
         frame_rate_calc = 1/time1
 
@@ -135,7 +135,7 @@ def ObjectDetection(cs):
         if cv2.waitKey(3) == ord('r'):
             print("check")
             clientSocket.send("re".encode())
-        rawCapture.truncate(0)
+        rawCapture.truncate(0) #refresh
 
     camera.close()
 
