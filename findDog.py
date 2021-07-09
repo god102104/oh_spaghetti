@@ -84,25 +84,25 @@ def check(cs):
            break
 
 
-def ObjectDetection(t):
+def ObjectDetection(t): 
     global camera
-    time.sleep(5)
+    time.sleep(5) 
     frame_rate_calc = 1
-    freq = cv2.getTickFrequency()
-    font = cv2.FONT_HERSHEY_SIMPLEX
+    freq = cv2.getTickFrequency() #tick frequency -> for measuring actural clock cycle 
+    font = cv2.FONT_HERSHEY_SIMPLEX 
     try:
         camera._check_camera_open()
     except Exception as e:
-        if e.__class__.__name__== "PiCameraClosed":
+        if e.__class__.__name__== "PiCameraClosed": 
          camera = PiCamera()
-         camera.resolution = (320, 240)
+         camera.resolution = (320, 240) #setting camera resolution
          camera.framerate = 30
     rawCapture = PiRGBArray(camera, size=(IM_WIDTH,IM_HEIGHT))     
-    rawCapture.truncate(0)
+    rawCapture.truncate(0) #clear stream for next frame
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect(usr.ADDR)
-    for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
-        t1 = cv2.getTickCount()
+    for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True): #output= rawCapture 
+        t1 = cv2.getTickCount() #counting cycle
         if not t.is_alive():
             print("aLive")
             clientSocket.send("end".encode())
@@ -112,7 +112,7 @@ def ObjectDetection(t):
         frame = np.copy(frame1.array)
         frame.setflags(write=1)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_expanded = np.expand_dims(frame_rgb, axis=0)
+        frame_expanded = np.expand_dims(frame_rgb, axis=0) #creating multidimenstional array
 
     # Perform the actual detection by running the model with the image as input
         (boxes, scores, classes, num) = sess.run(
