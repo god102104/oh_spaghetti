@@ -5,23 +5,34 @@ https://github.com/god102104/oh_spaghetti
 
 Main 기능 파일
 1. 펫 인식 및 추적 기능
-oh_spaghetti/findDog.py
-oh_spaghetti/orange/car.py  #주행
+
+   oh_spaghetti/findDog.py
+
+   oh_spaghetti/orange/car.py  #주행
+
 
 2. 밥 그릇 인식 및 잔량확인 기능
-oh_spaghetti/dog_bowl.py
-oh_spaghetti/orange/bowl.py #주행
+
+   oh_spaghetti/dog_bowl.py
+
+   oh_spaghetti/orange/bowl.py #주행
+
 
 3. 앱과 소켓 통신을 위한 코드
-oh_spaghetti/client_socket.py  # raspberry pi
-oh_spaghetti/orange/client_socket.py  # orange pi
+   
+   oh_spaghetti/client_socket.py  # raspberry pi
+   
+   oh_spaghetti/orange/client_socket.py  # orange pi
 
 4. 앱주소 
-https://github.com/msShim/pet_butler
+   
+   https://github.com/msShim/pet_butler
 
 5. Keras & tensorflow Version
-Keras 2.2.5
-tensorflow 1.14.0
+   
+   Keras 2.2.5
+   
+   tensorflow 1.14.0
 
 
 ## Install
