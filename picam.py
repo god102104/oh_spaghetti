@@ -9,5 +9,4 @@ if not picam_check:
  camera = PiCamera()
  camera.resolution = (IM_WIDTH,IM_HEIGHT)
  camera.framerate = 30
-# print(camera._check_camera_open())
 

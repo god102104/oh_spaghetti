@@ -17,9 +17,7 @@ from socket import *
 import asyncio
 from picam import *
 
-#############################################
-#-----------insert bolw detection------------
-
+#이미지 256x256 pixel로 전처리
 catg = ["Full", "Empty"]
 
 def Dataization(img): #cv2 image box size setting 
@@ -31,15 +29,11 @@ def Dataization(img): #cv2 image box size setting
     return (img/256)
 
 
-#############################################
-
-
-# Set up camera constants
+# 카메라 사진 사이즈 설정
 IM_WIDTH = 320    #Use smaller resolution for
 IM_HEIGHT = 240   #slightly faster framerate
 
 
-# This is needed since the working directory is the object_detection folder.
 sys.path.append('..')
 
 # Import utilites
@@ -47,35 +41,25 @@ sys.path.append('research/')
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
-# Name of the directory containing the object detection module we're using
+# 사용할 object detection model directory 설정
 MODEL_NAME = 'ssdlite_mobilenet_v2_coco_2018_05_09'
 
-# Grab path to current working directory
 CWD_PATH = os.getcwd()
 
-# Path to frozen detection graph .pb file, which contains the model that is used
-# for object detection.
+# frozen detection graph .pb file의 path 설정(사용할 모델)
 PATH_TO_CKPT = os.path.join(CWD_PATH,'research','object_detection',MODEL_NAME,'frozen_inference_graph.pb')
 
-# Path to label map file
+# label 파일 path 설정
 PATH_TO_LABELS = os.path.join(CWD_PATH, 'research','object_detection','data','mscoco_label_map.pbtxt')
 
-# Number of classes the object detector can identify
 NUM_CLASSES = 90
 
-## Load the label map.
-# Label maps map indices to category names, so that when the convolution
-# network predicts `5`, we know that this corresponds to `airplane`.
-# Here we use internal utility functions, but anything that returns a
-# dictionary mapping integers to appropriate string labels would be fine
 
-#
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
-
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-# Load the Tensorflow model into memory.
+# 모델을 읽어와서 텐서플로우 그래프 생성
 detection_graph = tf.Graph()
 with detection_graph.as_default():
     od_graph_def = tf.GraphDef()
@@ -87,33 +71,35 @@ with detection_graph.as_default():
     sess = tf.Session(graph=detection_graph)
 
 
-# Define input and output tensors (i.e. data) for the object detection classifier
-
-# Input tensor is the image
+# Input tensor 값
 image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
 
-# Output tensors are the detection boxes, scores, and classes
-# Each box represents a part of the image where a particular object was detected
+# Output tensors는 boxes, scores, and classes를 찾아줍니다.
 detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
 
-# Each score represents level of confidence for each of the objects.
-# The score is shown on the result image, together with the class label.
+# 각 dectect된 object의 점수값을 보여줍니다.
 detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
+# 각 dectect된 object의 종류를 보여줍니다.
 detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
 
-# Number of objects detected
+# 찾아진 물체의 갯수
 num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
+# 파이카메라 중복 실행을 막기위한 코드
 if not picam_check:
     picam_check = True
 
 global frame
 
+# 카메라 송출 및 물체를 detect하는 함수.
 def OD():
     global frame
     global camera
+
     # Initialize frame rate calculation
     frame_rate_calc = 1
+
+    #opencv를 통한 카메라 송출 
     freq = cv2.getTickFrequency()
     font = cv2.FONT_HERSHEY_SIMPLEX
     try:
@@ -125,25 +111,26 @@ def OD():
          camera.framerate = 30
     rawCapture = PiRGBArray(camera, size=(IM_WIDTH,IM_HEIGHT))     
     rawCapture.truncate(0)
+
+    # 오렌지 파이와 통신을 위한 소켓 설정
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect(usr.ADDR2)
     for frame1 in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):
 
         t1 = cv2.getTickCount()
         
-        # Acquire frame and expand frame dimensions to have shape: [1, None, None, 3]
-        # i.e. a single-column array, where each item in the column has the pixel RGB value
+        # 카메라 프레임을 [1, None, None, 3] 차원으로 바꾸기 위한 계산
         frame = np.copy(frame1.array)
         frame.setflags(write=1)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_expanded = np.expand_dims(frame_rgb, axis=0)
 
-        # Perform the actual detection by running the model with the image as input
+        # input image frame을 model로 물체를 판별
         (boxes, scores, classes, num) = sess.run(
             [detection_boxes, detection_scores, detection_classes, num_detections],
             feed_dict={image_tensor: frame_expanded})
 
-        # Draw the results of the detection (aka 'visulaize the results')
+        # 결과 출력 및 bounding box 그려주기
         data_ = vis_util.visualize_boxes_and_labels_on_image_array(
             frame,
             np.squeeze(boxes),
@@ -157,9 +144,12 @@ def OD():
             min_score_thresh=0.40)
         cv2.putText(frame,"FPS: {0:.2f}".format(frame_rate_calc),(30,50),font,1,(255,255,0),2,cv2.LINE_AA)
 
-        # All the results have been drawn on the frame, so it's time to display it.
+        # 이미지 출력
         cv2.imshow('Object detector', frame)
-        if data_ and (data_[0] == 'bowl'):
+
+        # 찾은 물체의 이름을 판별. (bowl이 정답이지만 유사한것도 찾기 때문에 예외처리를 해줌.)
+        if data_ and (data_[0] == 'bowl' or data_[0] =='potted plant' or data_[0] == 'boat' or data_[0] == 'sink' or data_[0] == 'frisbee'):
+          # 물체의 이름, 물체 좌표의 중앙값을 오렌지 파이로 전송
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
         else:
           clientSocket.send("noData".encode())
@@ -168,6 +158,8 @@ def OD():
         frame_rate_calc = 1/time1
         data = clientSocket.recv(1024)
         data = data.decode()
+
+        # 오랜지파이로부터 그릇을 찾았다는 데이터를 받으면 실행
         if data == "Find":
           clientSocket.close()
           return data_[0]
@@ -181,19 +173,21 @@ def OD():
     cv2.destroyAllWindows()
     sess.close()
 
+# 밥 그릇에 먹이가 어느 정도인지 확인하는 기능
 def check(data):
   global frame
-  if data == 'bowl' or data =='boat' or data == 'potted plant' or data == 'sink' or data == 'frisbee' or data == 'toilet':
+  if data == 'bowl' or data =='boat' or data == 'potted plant' or data == 'sink' or data == 'frisbee':
     src = []
     name = []
     test = []
     test.append(Dataization(frame))
     test = np.array(test)
+
+    # 학습 시킨 모델을 통해 먹이의 양을 판단
     model = load_model('bowl_kt2.h5')
     predict = model.predict_classes(test)
     for i in range(len(test)):
         return str(catg[predict[i]])
-        #print("Predict :" + str(catg[predict[i]]))
 
 def remain_food_check():
     time.sleep(5)

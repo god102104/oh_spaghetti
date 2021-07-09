@@ -6,6 +6,7 @@ import time
 sys.path.append('..')
 import user_setting as usr
 flag = False
+# 안드로이드 앱과 통신을 위한 소켓 설정
 ADDR = (usr.Mobile, 5050)
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect(ADDR)
@@ -21,10 +22,10 @@ while True:
    continue
   if data=="1\n":
    print("Find")
- #  if data == "1\n" and not flag:
- #  os.system("sudo fuser -k -n tcp 4000")
+   if past == "2\n":
+    # port가 닫히지 않을 경우를 대비
+    os.system("sudo fuser -k -n tcp 4000")
    flag = True
- #  time.sleep(1)
    subprocess.Popen("python3 ~/oh_spaghetti/orange/car.py", shell = True)
   elif data == "2\n":
    flag = True

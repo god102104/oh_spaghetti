@@ -1,1 +1,0 @@
-sudo ./CSDK/test/tt

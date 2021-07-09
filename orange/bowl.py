@@ -10,8 +10,9 @@ import distance as ds
 ### client end msg error
 
 BUFSIZE = 1024
+#라즈베리 파이와 통신을 위한 소켓 설정
 serverSocket = socket(AF_INET, SOCK_STREAM)
-IMGCenter = 160
+IMGCenter = 160 # 카메라 설정(320의 /2)
 
 def motorSpeed(motor1, motor2):
   hw.motor_one_speed(motor1)
@@ -31,15 +32,19 @@ try:
  while(True):
 
   data = clientSocket.recv(65535) #recevied data 저장
+  #if client socket close
   if not data:
-   clientSocket.close() #data 가 없을시 socket close
+   clientSocket.close() 
    break
-  data = data.decode() #
-  if data == "end": #end 라는 data 수신 시 "end"출력 후 socket close
+  data = data.decode() 
+  #물체 인식 후 움직일 필요가 없기에 socket close
+  if data == "end": 
     print("end")
     clientSocket.close()
     break
-  distance = ds.measure_average() #ds.measuer_average()를 통해 3번의 초음파센서 위치 측정값의 평균으로 거리를 잡음.
+  
+  #ds.measuer_average()를 통해 3번의 초음파센서 위치 측정값의 평균으로 거리를 잡음.
+  distance = ds.measure_average() 
   print('distance:{}, recieve data :{}'.format(distance,data)) 
   if distance <= 30: #distance 가 30cm보다 같거나 작으면 모터를 정지.
     motorSpeed(0, 0)

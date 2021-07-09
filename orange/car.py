@@ -13,8 +13,9 @@ import distance as ds
 #전체적인 내용은 bowl.py와 유사합니다.
 
 BUFSIZE = 1024
+#라즈베리 파이와 통신을 위한 소켓 설정
 serverSocket = socket(AF_INET, SOCK_STREAM)
-IMGCenter = 160
+IMGCenter = 160 # 카메라 설정(320의 /2)
 
 def motorSpeed(motor1, motor2):
   hw.motor_one_speed(motor1)
@@ -33,6 +34,7 @@ try:
  while(True):
 
   data = clientSocket.recv(65535)
+  #if client socket close
   if not data:
    clientSocket.close()
    break
@@ -41,17 +43,20 @@ try:
     print("end")
     clientSocket.close()
     break
+  # 거리 측정
   distance = ds.measure_average()
   print('distance:{}, recieve data :{}'.format(distance,data))
-  if distance <= 30:
 
+  # 30cm안에 물체가 있을 때 정지
+  if distance <= 30:
     motorSpeed(0, 0)
     continue
   if data == "noData":
+    # 물체를 찾지 못했을때 제자리에서 회전
     motorSpeed(cfg.firstMin, cfg.firstMax)
   else:
     temp = data.split(";")
-    pet_center = float(temp[1].split(";")[0])
+    pet_center = float(temp[1].split(";")[0])# 인식된 대상의 width center 좌표
     diff = pet_center - IMGCenter
     if diff < -15 :
       #right
@@ -64,8 +69,6 @@ try:
     else:
       hw.motor_one_speed(0)
       hw.motor_two_speed(0)
-  
-#  clientSocket.close()
 
 except KeyboardInterrupt:
  hw.motor_clean()

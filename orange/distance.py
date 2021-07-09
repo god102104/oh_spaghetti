@@ -20,7 +20,7 @@ def measure():
 
     return distance
 
-def measure_average(): #평균 거리를 측정하기 위해 3번의 측정 평균을 사용함
+def measure_average(): #보다 정확한 거리측정을 위해 3번의 측정 평균을 사용함(cm 단위)
     distance1=measure()
     time.sleep(0.1)
     distance2=measure()
