@@ -4,7 +4,7 @@ from pyA20.gpio import gpio as GPIO
 from pyA20.gpio import port
 import threading
 
-class OrangePwm(threading.Thread):
+class OrangePwm(threading.Thread): #Thread for enhanced performance and error correction
 
   def __init__(self, frequency, gpioPin, gpioScheme=0):
      """ 
@@ -42,7 +42,7 @@ class OrangePwm(threading.Thread):
     """
     while self.toTerminate == False:
       if self.dutyCycle > 0:
-        GPIO.output(self.gpioPin, GPIO.HIGH)
+        GPIO.output(self.gpioPin, GPIO.HIGH) 
         time.sleep(self.dutyCycle * self.sliceTime)
       
       if self.dutyCycle < self.maxCycle:
@@ -244,7 +244,7 @@ def motor_two_speed(speed):
 def motor_clean():
 	MotorOne.stop(0)
 	MotorTwo.stop(0)
-	MotorOne.cleanup(True)
+	MotorOne.cleanup(True) 
 	MotorTwo.cleanup(True)
     
 if __name__ == '__main__':
@@ -261,3 +261,4 @@ if __name__ == '__main__':
         motor_clean()
         break
     exit()
+
