@@ -159,7 +159,7 @@ def OD():
 
         # All the results have been drawn on the frame, so it's time to display it.
         cv2.imshow('Object detector', frame)
-        if data_ and (data_[0] == 'bowl' or data_[0] =='potted plant' or data_[0] == 'boat' or data_[0] == 'sink' or data_[0] == 'frisbee' or data_[0] == 'toilet'):
+        if data_ and (data_[0] == 'bowl'):
           clientSocket.send((data_[0]+";"+str(data_[1])).encode())
         else:
           clientSocket.send("noData".encode())
